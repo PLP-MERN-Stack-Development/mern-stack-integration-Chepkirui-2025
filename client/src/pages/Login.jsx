@@ -1,19 +1,20 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-const Register = () => {
+const Login = () => {
   const navigate = useNavigate();
-  const { register } = useAuth();
+  const location = useLocation();
+  const { login } = useAuth();
   
   const [formData, setFormData] = useState({
-    name: '',
     email: '',
     password: '',
-    confirmPassword: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const from = location.state?.from?.pathname || '/';
 
   const handleChange = (e) => {
     setFormData((prev) => ({
@@ -28,26 +29,11 @@ const Register = () => {
     setLoading(true);
     setError('');
 
-    // Validate passwords match
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
-      setLoading(false);
-      return;
-    }
-
-    // Validate password length
-    if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters');
-      setLoading(false);
-      return;
-    }
-
     try {
-      const { confirmPassword, ...userData } = formData;
-      await register(userData);
-      navigate('/');
+      await login(formData);
+      navigate(from, { replace: true });
     } catch (err) {
-      setError(err.response?.data?.error || 'Registration failed. Please try again.');
+      setError(err.response?.data?.error || 'Login failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -57,7 +43,7 @@ const Register = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="max-w-md w-full">
         <div className="bg-white rounded-lg shadow-md p-8">
-          <h2 className="text-3xl font-bold text-center mb-8">Sign Up</h2>
+          <h2 className="text-3xl font-bold text-center mb-8">Log In</h2>
 
           {error && (
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
@@ -66,22 +52,6 @@ const Register = () => {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium mb-2">
-                Name
-              </label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter your name"
-              />
-            </div>
-
             <div>
               <label htmlFor="email" className="block text-sm font-medium mb-2">
                 Email
@@ -117,38 +87,19 @@ const Register = () => {
               />
             </div>
 
-            <div>
-              <label
-                htmlFor="confirmPassword"
-                className="block text-sm font-medium mb-2"
-              >
-                Confirm Password
-              </label>
-              <input
-                type="password"
-                id="confirmPassword"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Confirm your password"
-              />
-            </div>
-
             <button
               type="submit"
               disabled={loading}
               className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Signing up...' : 'Sign Up'}
+              {loading ? 'Logging in...' : 'Log In'}
             </button>
           </form>
 
           <p className="text-center mt-6 text-sm text-gray-600">
-            Already have an account?{' '}
-            <Link to="/login" className="text-blue-600 hover:text-blue-800">
-              Log in
+            Don't have an account?{' '}
+            <Link to="/register" className="text-blue-600 hover:text-blue-800">
+              Sign up
             </Link>
           </p>
         </div>
@@ -157,4 +108,4 @@ const Register = () => {
   );
 };
 
-export default Register;
+export default Login;
